@@ -1,0 +1,29 @@
+{
+  "name": "Swami Samarth Jap Tracker",
+  "short_name": "Jap Tracker",
+  "description": "Track your daily Shree Swami Samarth jap with milestones, streaks, and spiritual progress towards 6,00,000 jap in 1095 days.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a0a00",
+  "theme_color": "#FF6B00",
+  "categories": ["lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "lang": "en",
+  "dir": "ltr"
+}

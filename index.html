@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FF6B00">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Jap Tracker">
+  <meta name="description" content="Track your daily Shree Swami Samarth jap with milestones, streaks, and spiritual progress towards 6,00,000 jap in 1095 days.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  
+  <title>Swami Samarth Jap Tracker</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ===== HEADER ===== -->
+    <header class="app-header">
+      <img src="icon-512.png" alt="Swami Samarth" class="app-header-icon" id="header-icon">
+      <div>
+        <div class="app-header-title">
+          Swami Samarth Jap Tracker
+          <span class="app-header-subtitle">श्री स्वामी समर्थ</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== ONBOARDING OVERLAY ===== -->
+    <div id="onboarding" class="onboarding-overlay hidden">
+      <img src="icon-512.png" alt="Swami Samarth" class="onboarding-icon">
+      <h1 class="onboarding-title">🙏 Swami Samarth Jap Tracker</h1>
+      <p class="onboarding-subtitle">Begin your sacred journey of 6,00,000 jap</p>
+      <div class="onboarding-form">
+        <div class="form-group">
+          <label for="ob-name">Your Name</label>
+          <input type="text" id="ob-name" placeholder="Enter your name" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label for="ob-start-date">Sankalpa Start Date</label>
+          <input type="date" id="ob-start-date">
+        </div>
+        <div class="form-group">
+          <label for="ob-morning-time">Morning Notification Time</label>
+          <input type="time" id="ob-morning-time" value="06:00">
+        </div>
+        <div class="form-group">
+          <label for="ob-afternoon-time">Afternoon Reminder Time</label>
+          <input type="time" id="ob-afternoon-time" value="14:00">
+        </div>
+        <button class="btn-primary" onclick="submitOnboarding()" id="btn-start-journey">
+          🙏 Begin My Journey
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== CELEBRATION OVERLAY ===== -->
+    <div id="celebration" class="celebration-overlay hidden">
+      <div id="confetti-container" class="confetti-container"></div>
+      <div class="celebration-emoji" id="celeb-emoji">🏆</div>
+      <h2 class="celebration-title" id="celeb-title"></h2>
+      <p class="celebration-msg-mr marathi" id="celeb-msg-mr"></p>
+      <p class="celebration-msg-en" id="celeb-msg-en"></p>
+      <p class="celebration-badge-name" id="celeb-badge-name"></p>
+      <button class="celebration-close" onclick="closeCelebration()" id="btn-close-celebration">🙏 Jai Swami Samarth</button>
+    </div>
+
+    <!-- ===== RESET MODAL ===== -->
+    <div id="reset-modal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h3 class="modal-title">⚠️ Reset All Data?</h3>
+        <p class="modal-text">This will permanently delete all your jap history, journal entries, milestones, streaks, and settings. This cannot be undone.</p>
+        <div class="modal-actions">
+          <button class="modal-cancel" onclick="cancelReset()" id="btn-cancel-reset">Cancel</button>
+          <button class="modal-confirm" onclick="confirmReset()" id="btn-confirm-reset">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== INSTALL BANNER ===== -->
+    <div id="install-banner" class="install-banner hidden">
+      <span style="font-size:1.5rem">📲</span>
+      <span class="install-banner-text">Install this app to your home screen for the best experience</span>
+      <button class="install-banner-btn" onclick="installApp()" id="btn-install">Install</button>
+      <button class="install-banner-close" onclick="dismissInstall()" id="btn-dismiss-install">&times;</button>
+    </div>
+
+    <!-- ===== HOME SCREEN ===== -->
+    <div id="screen-home" class="screen active">
+      <p class="text-center mb-12" style="font-size:0.95rem;color:var(--text-secondary)" id="home-greeting"></p>
+      
+      <!-- Daily Quote -->
+      <div class="daily-quote-card">
+        <p class="daily-quote-mr marathi" id="home-quote-mr"></p>
+        <p class="daily-quote-en" id="home-quote-en"></p>
+      </div>
+
+      <!-- Catch-up Banner -->
+      <div id="home-catchup" class="catchup-banner hidden">
+        <div class="catchup-title">📢 Today is Catch-Up Day!</div>
+        <div class="catchup-text">Do <span class="catchup-target" id="catchup-target">0</span> jap today to get back on track</div>
+      </div>
+
+      <!-- Today's Count -->
+      <div class="card card-glow">
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="home-today-count">0</div>
+          <div class="hero-stat-label">Today's Jap</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px" id="home-today-remaining"></div>
+        </div>
+      </div>
+
+      <!-- Status Badge -->
+      <div class="text-center mb-12">
+        <div class="badge-pill badge-ahead" id="home-badge">✨ On track</div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">🔥 <span id="home-streak">0</span></div>
+          <div class="stat-label">Current Streak</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="home-pct">0%</div>
+          <div class="stat-label">Complete</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="home-total">0</div>
+          <div class="stat-label">Total Jap</div>
+          <div style="font-size:0.6rem;color:var(--text-muted)" id="home-total-target"></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="home-days-remaining">1095</div>
+          <div class="stat-label">Days Left</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">⭐ <span id="home-best-streak">0</span></div>
+          <div class="stat-label">Best Streak</div>
+        </div>
+        <div class="stat-item">
+          <div class="est-date">
+            <div class="est-date-value" id="home-est-date">—</div>
+            <div class="est-date-label">Est. Completion</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Progress -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:0.8rem;color:var(--text-secondary)">Overall Progress</span>
+          <span style="font-size:0.8rem;color:var(--text-accent)" id="home-pct-2"></span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="home-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="sub-nav mt-16">
+        <button class="sub-nav-btn" onclick="showTrophies()" id="btn-trophies">🏆 Trophies</button>
+        <button class="sub-nav-btn" onclick="switchScreen('settings');document.getElementById('stats-section').scrollIntoView({behavior:'smooth'})" id="btn-all-stats">📊 Statistics</button>
+      </div>
+    </div>
+
+    <!-- ===== COUNTER SCREEN ===== -->
+    <div id="screen-counter" class="screen">
+      <!-- Full-screen tap zone for +1 jap counting -->
+      <div id="tap-zone" class="tap-zone">
+        <!-- Floating +1 animations appear here -->
+        <div id="tap-float-container" class="tap-float-container"></div>
+        <!-- Pulse ring on tap -->
+        <div id="tap-pulse" class="tap-pulse"></div>
+
+        <!-- Tap mode indicator -->
+        <div class="tap-mode-bar">
+          <span class="tap-mode-hint" id="tap-mode-hint">👆 Tap anywhere to count +1</span>
+          <button class="tap-mode-toggle" id="tap-mode-toggle" onclick="event.stopPropagation(); toggleTapMode()">
+            <span id="tap-toggle-icon">🔓</span>
+          </button>
+        </div>
+
+        <div class="counter-ring-container">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(249,115,22,0.1)" stroke-width="8"/>
+            <circle id="counter-ring-progress" cx="80" cy="80" r="70" fill="none" stroke="url(#ringGrad)" stroke-width="8" stroke-linecap="round" stroke-dasharray="439.82" stroke-dashoffset="439.82" style="transition: stroke-dashoffset 0.5s ease"/>
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#f97316"/>
+                <stop offset="100%" style="stop-color:#eab308"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="counter-ring-text">
+            <div class="counter-ring-pct" id="counter-ring-pct">0%</div>
+            <div class="counter-ring-label">of daily goal</div>
+          </div>
+        </div>
+
+        <div class="counter-display">
+          <div class="counter-value" id="counter-value">0</div>
+          <div class="counter-label">Today's Jap</div>
+          <div class="counter-remaining" id="counter-remaining"></div>
+        </div>
+
+        <div class="counter-buttons">
+          <button class="counter-btn btn-plus108" onclick="event.stopPropagation(); addJap(108)" id="btn-plus-108">
+            +108
+            <span class="counter-btn-sublabel">One Mala</span>
+          </button>
+          <button class="counter-btn btn-plus540" onclick="event.stopPropagation(); addJap(540)" id="btn-plus-540">
+            +540
+            <span class="counter-btn-sublabel">Five Malas</span>
+          </button>
+        </div>
+
+        <div class="counter-buttons-row2">
+          <button class="counter-btn btn-undo" onclick="event.stopPropagation(); undoLast()" id="btn-undo">
+            ↩️ Undo
+            <span class="counter-btn-sublabel">Last Entry</span>
+          </button>
+        </div>
+
+        <!-- Streak display -->
+        <div class="card mt-16" onclick="event.stopPropagation()">
+          <div class="streak-display">
+            <div class="streak-item">
+              <div class="streak-fire">🔥</div>
+              <div class="streak-num" id="counter-streak">0</div>
+              <div class="streak-lbl">Current</div>
+            </div>
+            <div class="streak-divider"></div>
+            <div class="streak-item">
+              <div class="streak-fire">⭐</div>
+              <div class="streak-num" id="counter-best-streak">0</div>
+              <div class="streak-lbl">Best</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PROGRESS SCREEN ===== -->
+    <div id="screen-progress" class="screen">
+      <!-- Progress Rings -->
+      <div class="progress-section">
+        <div class="section-title"><span class="emoji">📊</span> Today & This Week</div>
+        <div class="rings-row">
+          <div class="ring-item">
+            <svg width="130" height="130" viewBox="0 0 130 130">
+              <circle cx="65" cy="65" r="55" fill="none" stroke="rgba(249,115,22,0.1)" stroke-width="8"/>
+              <circle id="daily-ring-progress" cx="65" cy="65" r="55" fill="none" stroke="#f97316" stroke-width="8" stroke-linecap="round" stroke-dasharray="345.58" stroke-dashoffset="345.58" style="transition: stroke-dashoffset 0.5s ease"/>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-value" id="daily-ring-value">0</div>
+              <div class="ring-sublabel" id="daily-ring-sublabel">/600</div>
+            </div>
+            <div class="ring-label">Daily</div>
+          </div>
+          <div class="ring-item">
+            <svg width="130" height="130" viewBox="0 0 130 130">
+              <circle cx="65" cy="65" r="55" fill="none" stroke="rgba(234,179,8,0.1)" stroke-width="8"/>
+              <circle id="weekly-ring-progress" cx="65" cy="65" r="55" fill="none" stroke="#eab308" stroke-width="8" stroke-linecap="round" stroke-dasharray="345.58" stroke-dashoffset="345.58" style="transition: stroke-dashoffset 0.5s ease"/>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-value" id="weekly-ring-value">0</div>
+              <div class="ring-sublabel" id="weekly-ring-sublabel">/4,200</div>
+            </div>
+            <div class="ring-label">Weekly</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Chart -->
+      <div class="progress-section">
+        <div class="section-title"><span class="emoji">📈</span> Last 30 Days</div>
+        <div class="chart-container">
+          <canvas id="line-chart" class="chart-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Calendar Heatmap -->
+      <div class="progress-section">
+        <div class="section-title"><span class="emoji">📅</span> Calendar Heatmap</div>
+        <div class="card">
+          <div class="month-nav">
+            <button class="month-nav-btn" onclick="prevMonth()" id="btn-prev-month">‹</button>
+            <span class="month-nav-label" id="heatmap-month-label"></span>
+            <button class="month-nav-btn" onclick="nextMonth()" id="btn-next-month">›</button>
+          </div>
+          <div class="heatmap-grid" id="heatmap-grid"></div>
+          <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;font-size:0.65rem;color:var(--text-muted)">
+            <span><span class="heatmap-cell green" style="display:inline-block;width:10px;height:10px;border-radius:2px"></span> 600+</span>
+            <span><span class="heatmap-cell yellow" style="display:inline-block;width:10px;height:10px;border-radius:2px"></span> 1-599</span>
+            <span><span class="heatmap-cell red" style="display:inline-block;width:10px;height:10px;border-radius:2px"></span> Missed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Summary -->
+      <div class="progress-section">
+        <div class="section-title"><span class="emoji">📋</span> Monthly Summary</div>
+        <div class="monthly-stats">
+          <div class="monthly-stat">
+            <div class="monthly-stat-val" id="monthly-total">0</div>
+            <div class="monthly-stat-lbl">Total Jap</div>
+          </div>
+          <div class="monthly-stat">
+            <div class="monthly-stat-val" id="monthly-avg">0</div>
+            <div class="monthly-stat-lbl">Daily Average</div>
+          </div>
+          <div class="monthly-stat">
+            <div class="monthly-stat-val" id="monthly-best">0</div>
+            <div class="monthly-stat-lbl">Best Day</div>
+          </div>
+          <div class="monthly-stat">
+            <div class="monthly-stat-val" id="monthly-missed">0</div>
+            <div class="monthly-stat-lbl">Days Missed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== JOURNAL SCREEN ===== -->
+    <div id="screen-journal" class="screen">
+      <div class="section-title"><span class="emoji">📝</span> Daily Journal</div>
+      
+      <div class="journal-prompt" id="journal-prompt">
+        <p class="journal-prompt-text" id="journal-prompt-text"></p>
+        <div class="journal-input-row">
+          <input type="text" class="journal-input" id="journal-input" placeholder="Write about today's jap..." maxlength="200">
+          <button class="journal-save-btn" onclick="saveJournal()" id="btn-save-journal">Save</button>
+        </div>
+      </div>
+
+      <div class="section-title mt-16"><span class="emoji">📖</span> Past Entries</div>
+      <div id="journal-history"></div>
+    </div>
+
+    <!-- ===== TROPHY SCREEN ===== -->
+    <div id="screen-trophy" class="screen">
+      <div class="section-title mb-16"><span class="emoji">🏆</span> Milestones & Badges</div>
+      <div class="trophy-grid" id="trophy-grid"></div>
+      <button class="btn-secondary btn-block mt-16" onclick="switchScreen('home')" id="btn-back-home">← Back to Home</button>
+    </div>
+
+    <!-- ===== SETTINGS SCREEN ===== -->
+    <div id="screen-settings" class="screen">
+      <div class="section-title mb-16"><span class="emoji">⚙️</span> Settings</div>
+
+      <!-- Statistics -->
+      <div class="settings-group" id="stats-section">
+        <div class="settings-group-title">📊 Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="stats-total">0</div>
+            <div class="stat-label">Total Jap</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stats-streak">0</div>
+            <div class="stat-label">Current Streak</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stats-best-streak">0</div>
+            <div class="stat-label">Best Streak</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stats-best-day">0</div>
+            <div class="stat-label">Best Day</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stats-avg">0</div>
+            <div class="stat-label">Avg/Day</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stats-malas">0</div>
+            <div class="stat-label">Total Malas</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stats-projected">—</div>
+            <div class="stat-label">Est. Finish</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stats-milestones">0/6</div>
+            <div class="stat-label">Milestones</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Settings -->
+      <div class="settings-group">
+        <div class="settings-group-title">👤 Profile</div>
+        <div class="settings-item">
+          <span class="settings-item-label">Name</span>
+          <input type="text" class="settings-input" id="set-name">
+        </div>
+        <div class="settings-item">
+          <span class="settings-item-label">Start Date</span>
+          <input type="date" class="settings-input" id="set-start-date">
+        </div>
+      </div>
+
+      <!-- Notification Settings -->
+      <div class="settings-group">
+        <div class="settings-group-title">🔔 Notifications</div>
+        <div class="settings-item">
+          <span class="settings-item-label">Status</span>
+          <span class="settings-item-value" id="notif-status">—</span>
+        </div>
+        <div class="settings-item">
+          <span class="settings-item-label">Morning Time</span>
+          <input type="time" class="settings-input" id="set-morning-time">
+        </div>
+        <div class="settings-item">
+          <span class="settings-item-label">Afternoon Time</span>
+          <input type="time" class="settings-input" id="set-afternoon-time">
+        </div>
+        <button class="btn-secondary btn-block" onclick="testNotification()" id="btn-test-notif" style="margin-top:10px">🔔 Send Test Notification</button>
+      </div>
+
+      <!-- Target Settings -->
+      <div class="settings-group">
+        <div class="settings-group-title">🎯 Targets</div>
+        <div class="settings-item">
+          <span class="settings-item-label">Daily Target</span>
+          <input type="number" class="settings-input" id="set-daily-target" min="1">
+        </div>
+        <div class="settings-item">
+          <span class="settings-item-label">Weekly Target</span>
+          <input type="number" class="settings-input" id="set-weekly-target" min="1">
+        </div>
+      </div>
+
+      <button class="btn-primary btn-block mb-16" onclick="saveSettingsForm()" id="btn-save-settings">💾 Save Settings</button>
+
+      <!-- Data Management -->
+      <div class="settings-group">
+        <div class="settings-group-title">📦 Data Transfer (Android ↔ iPhone)</div>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:12px;line-height:1.5">
+          Export your data as a JSON file, then import it on any device to continue your jap journey seamlessly.
+        </p>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <button class="btn-secondary" style="flex:1" onclick="exportData()" id="btn-export">📤 Export Backup</button>
+          <button class="btn-secondary" style="flex:1" onclick="importData()" id="btn-import">📥 Import Backup</button>
+        </div>
+        <div class="transfer-info-card">
+          <div class="transfer-info-title">📱 How to Transfer</div>
+          <div class="transfer-info-step">1. On old phone → Export Backup</div>
+          <div class="transfer-info-step">2. Send the .json file via WhatsApp/Email</div>
+          <div class="transfer-info-step">3. On new phone → Import Backup</div>
+          <div class="transfer-info-step">4. All your jap data will be restored ✅</div>
+        </div>
+        </div>
+        <button class="btn-danger" onclick="resetAllData()" id="btn-reset-all">🗑️ Reset All Data</button>
+      </div>
+    </div>
+
+    <!-- ===== SHARE BUTTON ===== -->
+    <button class="share-btn-float" onclick="generateShareImage()" id="share-float" style="display:none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+    </button>
+
+    <!-- ===== BOTTOM NAVIGATION ===== -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-screen="home" id="nav-home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Home
+      </button>
+      <button class="nav-item" data-screen="counter" id="nav-counter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        Counter
+      </button>
+      <button class="nav-item" data-screen="progress" id="nav-progress">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        Progress
+      </button>
+      <button class="nav-item" data-screen="journal" id="nav-journal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Journal
+      </button>
+      <button class="nav-item" data-screen="settings" id="nav-settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.36 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Settings
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/quotes.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
