@@ -44,6 +44,10 @@ function switchScreen(name) {
 // ===== Init =====
 async function initApp() {
   await openDB();
+  
+  // Request persistent storage to prevent Chrome from evicting our data
+  await requestPersistentStorage();
+  
   const settings = getSettings();
   
   if (!settings) {
@@ -52,6 +56,9 @@ async function initApp() {
   }
   
   document.getElementById('onboarding').classList.add('hidden');
+  
+  // Check for data recovery — if IndexedDB was evicted, restore from localStorage
+  await checkAndRecoverData();
   
   // Load today's record
   const today = todayStr();
@@ -81,6 +88,25 @@ async function initApp() {
   setupTapZone();
   
   switchScreen('home');
+}
+
+// ===== Data Recovery Check =====
+async function checkAndRecoverData() {
+  // This triggers the merge logic inside getAllDailyRecords
+  // which auto-recovers IndexedDB from localStorage if needed
+  const records = await getAllDailyRecords();
+  const journal = await getAllJournalEntries();
+  
+  // Verify total jap matches records
+  const storedTotal = getTotalJap();
+  const calculatedTotal = records.reduce((sum, r) => sum + (r.count || 0), 0);
+  
+  if (calculatedTotal > 0 && storedTotal !== calculatedTotal) {
+    // Use the higher value — never lose progress
+    const corrected = Math.max(storedTotal, calculatedTotal);
+    saveTotalJap(corrected);
+    console.log(`[Recovery] Total jap corrected: stored=${storedTotal}, calculated=${calculatedTotal}, using=${corrected}`);
+  }
 }
 
 // ===== Onboarding =====
