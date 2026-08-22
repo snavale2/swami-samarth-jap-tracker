@@ -1,6 +1,6 @@
 // ===== Service Worker - Swami Samarth Jap Tracker =====
 
-const CACHE_NAME = 'swami-jap-tracker-v4';
+const CACHE_NAME = 'swami-jap-tracker-v5';
 const ASSETS = [
   './',
   './index.html',

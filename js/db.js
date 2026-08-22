@@ -528,9 +528,11 @@ async function verifyDataIntegrity() {
   const calculatedTotal = records.reduce((sum, r) => sum + (r.count || 0), 0);
   
   if (storedTotal !== calculatedTotal) {
-    // Auto-fix mismatch
-    saveTotalJap(calculatedTotal);
-    return { fixed: true, storedTotal, calculatedTotal };
+    // Use the HIGHER value — storedTotal can legitimately exceed
+    // calculatedTotal when jap were counted before per-day tracking
+    const corrected = Math.max(storedTotal, calculatedTotal);
+    saveTotalJap(corrected);
+    return { fixed: true, storedTotal, calculatedTotal, corrected };
   }
   return { fixed: false, total: storedTotal };
 }
