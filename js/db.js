@@ -437,43 +437,46 @@ async function importAllData(data) {
   if (!data) throw new Error('No data found in file');
   if (!data.version && !data.settings) throw new Error('Invalid backup file — not a Swami Samarth Jap Tracker backup');
   
-  // Validate critical fields
   const errors = [];
   
-  // Restore settings
+  // ── Step 0: Clear ALL existing data for a clean import ──
+  // This prevents stale localStorage records from mixing with imported data
+  await clearAllData();
+  
+  // ── Step 1: Restore localStorageBackup FIRST (notification keys, etc.) ──
+  // Skip keys that are handled by dedicated restore code below,
+  // so the canonical exported values always win.
+  const dedicatedKeys = new Set([
+    'swamiSettings', 'swamiMilestones', 'swamiTotalJap', 'swamiStreak'
+  ]);
+  if (data.localStorageBackup) {
+    for (const [key, value] of Object.entries(data.localStorageBackup)) {
+      // Skip keys managed by dedicated restore logic
+      if (dedicatedKeys.has(key)) continue;
+      // Skip daily-record & journal backup keys — they'll be written
+      // correctly when we restore dailyRecords / journalEntries below
+      if (key.startsWith(LS_RECORDS_PREFIX)) continue;
+      if (key.startsWith(LS_JOURNAL_PREFIX)) continue;
+      localStorage.setItem(key, value);
+    }
+  }
+  
+  // ── Step 2: Restore dedicated fields (these override any backup keys) ──
   if (data.settings) {
     saveSettings(data.settings);
   } else {
     errors.push('No settings found in backup');
   }
   
-  // Restore milestones
   if (data.milestones) {
     saveMilestones(data.milestones);
   }
   
-  // Restore total jap
-  if (data.totalJap !== undefined && data.totalJap !== null) {
-    saveTotalJap(data.totalJap);
-  } else if (data.dailyRecords) {
-    // Recalculate from records if totalJap missing
-    const calculated = data.dailyRecords.reduce((sum, r) => sum + (r.count || 0), 0);
-    saveTotalJap(calculated);
-  }
-  
-  // Restore streak data
   if (data.streakData) {
     saveStreakData(data.streakData);
   }
   
-  // Restore localStorage backup (covers notification keys, anniversary keys, etc.)
-  if (data.localStorageBackup) {
-    for (const [key, value] of Object.entries(data.localStorageBackup)) {
-      localStorage.setItem(key, value);
-    }
-  }
-  
-  // Restore daily records (dual-write to both IndexedDB AND localStorage)
+  // ── Step 3: Restore daily records (dual-write IndexedDB + localStorage) ──
   let recordsImported = 0;
   if (data.dailyRecords && Array.isArray(data.dailyRecords)) {
     for (const rec of data.dailyRecords) {
@@ -483,21 +486,30 @@ async function importAllData(data) {
           const parts = rec.date.split('-');
           rec.month = parts[0] + '-' + parts[1];
         }
-        await saveDailyRecord(rec); // This now does dual-write
+        await saveDailyRecord(rec); // Dual-write: IndexedDB + localStorage
         recordsImported++;
       }
     }
   }
   
-  // Restore journal entries (dual-write)
+  // ── Step 4: Restore journal entries (dual-write) ──
   let journalImported = 0;
   if (data.journalEntries && Array.isArray(data.journalEntries)) {
     for (const entry of data.journalEntries) {
       if (entry && entry.date) {
-        await saveJournalEntry(entry); // This now does dual-write
+        await saveJournalEntry(entry); // Dual-write: IndexedDB + localStorage
         journalImported++;
       }
     }
+  }
+  
+  // ── Step 5: Set totalJap LAST so nothing can overwrite it ──
+  if (data.totalJap !== undefined && data.totalJap !== null) {
+    saveTotalJap(data.totalJap);
+  } else if (data.dailyRecords) {
+    // Recalculate from records if totalJap missing in export
+    const calculated = data.dailyRecords.reduce((sum, r) => sum + (r.count || 0), 0);
+    saveTotalJap(calculated);
   }
   
   return {
